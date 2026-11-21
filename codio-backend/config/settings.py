@@ -37,6 +37,7 @@ def get_gemini_api_key() -> str:
 # ---------------------------------------------------------------------------
 # JWT Authentication
 # ---------------------------------------------------------------------------
+ADMIN_INITIAL_PASSWORD = os.getenv('ADMIN_INITIAL_PASSWORD', '')
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'default_secret_key_change_in_production')
 JWT_ALGORITHM = os.getenv('JWT_ALGORITHM', 'HS256')
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', '60'))

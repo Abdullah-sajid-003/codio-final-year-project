@@ -11,8 +11,16 @@ from pathlib import Path
 from typing import List, Dict, Optional
 import logging
 import hashlib
+import hmac
+
+import bcrypt
+
+from config.settings import ADMIN_INITIAL_PASSWORD
 
 logger = logging.getLogger(__name__)
+
+ADMIN_EMAIL = 'admin@gmail.com'
+_BCRYPT_SHA256_PREFIX = 'bcrypt-sha256$'
 
 
 class CodioDatabase:
@@ -175,31 +183,73 @@ class CodioDatabase:
         self._create_default_admin()
     
     def _create_default_admin(self):
-        """Create default admin account on first run"""
+        """Create the initial admin account only when explicitly configured."""
+        conn = self._get_connection()
         try:
-            conn = self._get_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT email FROM users WHERE email = ?", ('admin@gmail.com',))
-            if not cursor.fetchone():
-                now = datetime.now().isoformat()
-                password_hash = self._hash_password('admin123')
-                cursor.execute(
-                    "INSERT INTO users (email, name, password_hash, created_at, last_login) VALUES (?, ?, ?, ?, ?)",
-                    ('admin@gmail.com', 'Admin', password_hash, now, now)
+            cursor.execute("SELECT email FROM users WHERE email = ?", (ADMIN_EMAIL,))
+            if cursor.fetchone():
+                return
+
+            if not ADMIN_INITIAL_PASSWORD:
+                logger.info(
+                    "[Database] Initial admin account not created; "
+                    "ADMIN_INITIAL_PASSWORD is not configured"
                 )
-                conn.commit()
-                logger.info("[Database] Default admin account created (admin@gmail.com / admin123)")
+                return
+
+            self._validate_password(ADMIN_INITIAL_PASSWORD)
+            now = datetime.now().isoformat()
+            cursor.execute(
+                "INSERT INTO users (email, name, password_hash, created_at, last_login) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (ADMIN_EMAIL, 'Admin', self._hash_password(ADMIN_INITIAL_PASSWORD), now, now)
+            )
+            conn.commit()
+            logger.info("[Database] Initial admin account created")
+        finally:
             conn.close()
-        except Exception as e:
-            logger.error(f"[Database] Error creating default admin: {e}")
     
     def _hash_password(self, password: str) -> str:
-        """Hash password using SHA-256"""
-        return hashlib.sha256(password.encode()).hexdigest()
+        """Hash a password with bcrypt after SHA-256 pre-hashing."""
+        password_digest = hashlib.sha256(password.encode('utf-8')).hexdigest().encode('ascii')
+        password_hash = bcrypt.hashpw(password_digest, bcrypt.gensalt()).decode('ascii')
+        return f"{_BCRYPT_SHA256_PREFIX}{password_hash}"
     
     def _verify_password(self, password: str, password_hash: str) -> bool:
-        """Verify password against hash"""
-        return self._hash_password(password) == password_hash
+        """Verify current bcrypt hashes and legacy unsalted SHA-256 hashes."""
+        if password_hash.startswith(_BCRYPT_SHA256_PREFIX):
+            password_digest = hashlib.sha256(password.encode('utf-8')).hexdigest().encode('ascii')
+            try:
+                bcrypt_hash = password_hash[len(_BCRYPT_SHA256_PREFIX):].encode('ascii')
+                return bcrypt.checkpw(password_digest, bcrypt_hash)
+            except (UnicodeEncodeError, ValueError):
+                return False
+
+        legacy_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        return hmac.compare_digest(legacy_hash, password_hash)
+
+    @staticmethod
+    def _validate_password(password: str) -> None:
+        if len(password) < 12:
+            raise ValueError("Admin password must be at least 12 characters")
+
+    def set_user_password(self, email: str, password: str) -> bool:
+        """Set a user's password; return False when the account does not exist."""
+        self._validate_password(password)
+        conn = self._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET password_hash = ? WHERE email = ?",
+                (self._hash_password(password), email.strip().lower())
+            )
+            if cursor.rowcount == 0:
+                return False
+            conn.commit()
+            return True
+        finally:
+            conn.close()
     
     def create_user(self, email: str, name: str, password: str) -> Dict:
         """Create a new user account"""
@@ -257,6 +307,12 @@ class CodioDatabase:
                 logger.warning(f"[Database] Invalid password for {email}")
                 return {"success": False, "error": "Invalid email or password"}
             
+            if not user['password_hash'].startswith(_BCRYPT_SHA256_PREFIX):
+                cursor.execute(
+                    "UPDATE users SET password_hash = ? WHERE email = ?",
+                    (self._hash_password(password), email)
+                )
+
             # Update last login
             now = datetime.now().isoformat()
             cursor.execute("UPDATE users SET last_login = ? WHERE email = ?", (now, email))

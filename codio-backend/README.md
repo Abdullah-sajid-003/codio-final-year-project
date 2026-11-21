@@ -58,10 +58,19 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-# Fill in GEMINI_API_KEY and JWT_SECRET_KEY
+# Set GEMINI_API_KEY, JWT_SECRET_KEY, and ADMIN_INITIAL_PASSWORD
 
 # Run the server
 python run.py
+```
+
+`ADMIN_INITIAL_PASSWORD` is used only when creating the admin account in a new
+database and must be at least 12 characters. It does not change an existing
+admin password. To reset the existing local admin password, run this from
+`codio-backend/`; the new password is entered through hidden terminal prompts:
+
+```bash
+python reset_admin_password.py
 ```
 
 ## Running Tests

@@ -6,16 +6,21 @@ Comprehensive test script for all 3 Codio fixes:
 3. Quiz with multiple question types and progressive difficulty
 """
 
-import requests
 import json
+import os
+import requests
 import sys
 
 BASE = "http://127.0.0.1:8080/api/v1"
+ADMIN_TEST_PASSWORD = os.getenv("ADMIN_TEST_PASSWORD")
 
 def get_token():
+    if not ADMIN_TEST_PASSWORD:
+        raise RuntimeError("Set ADMIN_TEST_PASSWORD before running this integration test")
+
     resp = requests.post(f"{BASE}/auth/login", json={
         "email": "admin@gmail.com",
-        "password": "admin123"
+        "password": ADMIN_TEST_PASSWORD
     })
     data = resp.json()
     assert data.get("success"), f"Login failed: {data}"

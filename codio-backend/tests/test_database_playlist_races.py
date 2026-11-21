@@ -60,6 +60,7 @@ class PlaylistDatabaseRaceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / "codio.db"
             db = CodioDatabase(db_path=str(db_path))
+            db.create_user("admin@gmail.com", "Admin", "test-only-password")
 
             add_results = self._run_concurrently(
                 db,
