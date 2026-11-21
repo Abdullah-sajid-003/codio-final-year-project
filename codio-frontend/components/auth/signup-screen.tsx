@@ -150,7 +150,7 @@ export default function SignupScreen({ onSignup, onSwitchToLogin }: SignupScreen
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Muhammad Saleh"
+                  placeholder="Abdullah Khattak"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
