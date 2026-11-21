@@ -21,6 +21,7 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 
 from dotenv import load_dotenv
+from app.services.youtube_data_api import extract_video_id, get_video_details
 
 # Load environment variables from backend-local .env regardless of process working directory.
 load_dotenv(Path(__file__).resolve().parents[2] / '.env')
@@ -180,55 +181,16 @@ class VideoProcessor:
         try:
             logger.info(f"Downloading video from: {youtube_url}")
 
-            # Extract video ID
-            video_id = None
-            if 'v=' in youtube_url:
-                video_id = youtube_url.split('v=')[-1].split('&')[0]
-            elif 'youtu.be/' in youtube_url:
-                video_id = youtube_url.split('youtu.be/')[-1].split('?')[0]
-            else:
-                video_id = youtube_url.split('/')[-1].split('?')[0]
+            video_id = extract_video_id(youtube_url)
 
             if not video_id_for_progress:
                 video_id_for_progress = video_id
 
-            # First, get metadata to extract title for filename
-            logger.info(f"Fetching video metadata...")
-            meta_opts = {
-                'quiet': True,
-                'noplaylist': True,
-                'socket_timeout': 20,
-                'retries': 5,
-                'js_runtimes': {'node': {}},
-                'remote_components': ['ejs:github'],
-            }
-
-            validated_cookie_file = _resolve_valid_cookie_file()
-            if validated_cookie_file:
-                meta_opts['cookiefile'] = validated_cookie_file
-            elif os.getenv('YTDLP_COOKIES_FROM_BROWSER', '').strip():
-                browser = os.getenv('YTDLP_COOKIES_FROM_BROWSER', '').strip()
-                profile = os.getenv('YTDLP_COOKIES_BROWSER_PROFILE', '').strip() or None
-                meta_opts['cookiesfrombrowser'] = (browser, profile, None, None)
-
-            with yt_dlp.YoutubeDL(meta_opts) as ydl:
-                info = ydl.extract_info(youtube_url, download=False)
-
-                if info.get('_type') == 'playlist' and info.get('entries'):
-                    info = info['entries'][0]
-                    video_id = info.get('id', video_id)
-
-                title = info.get('title', 'Unknown')
-                safe_title = "".join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in title)
-                safe_title = safe_title.strip()[:100]
-
-                metadata = {
-                    "title": title,
-                    "duration": info.get('duration', 0),
-                    "author": info.get('uploader', 'Unknown'),
-                    "views": info.get('view_count', 0),
-                    "video_id": video_id
-                }
+            logger.info("Fetching video metadata from YouTube Data API...")
+            metadata = get_video_details(video_id)
+            title = metadata["title"]
+            safe_title = "".join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in title)
+            safe_title = safe_title.strip()[:100]
 
             playlist_folder = playlist_id[:20] if playlist_id else 'single'
             video_folder = self.output_dir.resolve() / playlist_folder / video_id
@@ -388,7 +350,7 @@ class VideoProcessor:
         """Extract transcript/captions from YouTube video using multiple methods.
         
         Priority order:
-        1. youtube-transcript-api (most reliable, no bot detection issues)
+        1. youtube-transcript-api
         2. yt-dlp subtitle download
         3. yt-dlp URL-based extraction
         4. Gemini AI fallback

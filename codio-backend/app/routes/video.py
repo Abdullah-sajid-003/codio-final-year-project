@@ -14,6 +14,7 @@ from dataclasses import asdict
 from flask import Blueprint, request, jsonify, send_file
 
 from app.utils.helpers import sanitize_error_text
+from app.services.youtube_data_api import search_videos
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +132,7 @@ def init_video_routes(service):
                     "success": False,
                     "code": "YOUTUBE_AUTH_REQUIRED",
                     "error": "YouTube blocked automated video access for this video.",
-                    "message": "Configure yt-dlp cookies by setting YTDLP_COOKIE_FILE in backend .env to an exported cookies.txt file."
+                    "message": "The backend still needs to download video media. Try a publicly accessible video again later."
                 }), 502
 
             return jsonify({
@@ -480,7 +481,7 @@ def init_video_routes(service):
                     "success": False,
                     "code": "YOUTUBE_AUTH_REQUIRED",
                     "error": "YouTube blocked automated playlist access for this video or playlist.",
-                    "message": "Configure yt-dlp cookies: set YTDLP_COOKIE_FILE (exported cookies.txt) or YTDLP_COOKIES_FROM_BROWSER (chrome/firefox)."
+                    "message": "YouTube could not provide this playlist. Check that it is public and try again later."
                 }), 502
 
             if any(marker in sanitized_error.lower() for marker in invalid_url_markers):
@@ -794,7 +795,7 @@ def init_video_routes(service):
     # ==================== YouTube Search ====================
     @video_bp.route('/youtube/search', methods=['GET'])
     def youtube_search():
-        """Search YouTube for videos using yt-dlp (no API key needed)"""
+        """Search YouTube for videos using the YouTube Data API."""
         request_id = f"search_{datetime.now().timestamp()}"
         query = request.args.get('q', '').strip()
         max_results = min(int(request.args.get('max_results', 20)), 50)
@@ -806,79 +807,7 @@ def init_video_routes(service):
             return jsonify({"success": False, "error": "Query parameter 'q' is required"}), 400
 
         try:
-            import yt_dlp
-
-            ydl_opts = {
-                'quiet': True,
-                'no_warnings': True,
-                'extract_flat': True,
-                'skip_download': True,
-                'default_search': f'ytsearch{max_results}',
-                'ignoreerrors': True,
-            }
-
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                result = ydl.extract_info(f"ytsearch{max_results}:{query}", download=False)
-
-            videos = []
-            if result and 'entries' in result:
-                for entry in result['entries']:
-                    if not entry:
-                        continue
-                    video_id = entry.get('id', '')
-                    if not video_id:
-                        continue
-
-                    duration = entry.get('duration') or 0
-                    view_count = entry.get('view_count') or 0
-
-                    # Format views text
-                    if view_count >= 1_000_000:
-                        views_text = f"{view_count / 1_000_000:.1f}M views"
-                    elif view_count >= 1_000:
-                        views_text = f"{view_count / 1_000:.1f}K views"
-                    else:
-                        views_text = f"{view_count} views"
-
-                    # Format published date
-                    upload_date = entry.get('upload_date', '')
-                    published = ''
-                    if upload_date and len(upload_date) == 8:
-                        try:
-                            from datetime import datetime as dt
-                            date_obj = dt.strptime(upload_date, '%Y%m%d')
-                            now = dt.now()
-                            diff = now - date_obj
-                            if diff.days < 1:
-                                published = "today"
-                            elif diff.days < 7:
-                                published = f"{diff.days} days ago"
-                            elif diff.days < 30:
-                                published = f"{diff.days // 7} weeks ago"
-                            elif diff.days < 365:
-                                published = f"{diff.days // 30} months ago"
-                            else:
-                                published = f"{diff.days // 365} years ago"
-                        except:
-                            published = upload_date
-
-                    thumbnail = entry.get('thumbnail') or entry.get('thumbnails', [{}])[0].get('url', '') if entry.get('thumbnails') else ''
-                    if not thumbnail and video_id:
-                        thumbnail = f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
-
-                    videos.append({
-                        'video_id': video_id,
-                        'title': entry.get('title', 'Untitled'),
-                        'channel': entry.get('channel', entry.get('uploader', 'Unknown')),
-                        'channel_id': entry.get('channel_id', ''),
-                        'thumbnail': thumbnail,
-                        'duration': int(duration),
-                        'views': int(view_count),
-                        'views_text': views_text,
-                        'published': published,
-                        'description': (entry.get('description', '') or '')[:200],
-                        'url': f"https://www.youtube.com/watch?v={video_id}",
-                    })
+            videos = search_videos(query, max_results)
 
             logger.info(f"[{request_id}] Found {len(videos)} video results for query '{query}'")
             return jsonify({

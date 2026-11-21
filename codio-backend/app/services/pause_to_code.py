@@ -25,11 +25,6 @@ from app.services.video_processing import (
 from app.services.gemini_extractor import GeminiCodeExtractor
 from app.services.concept_detection import ConceptDetector
 
-try:
-    import yt_dlp
-except ImportError:
-    yt_dlp = None
-
 logger = logging.getLogger(__name__)
 
 
@@ -975,9 +970,9 @@ class PauseToCodeService:
     # ------------------------------------------------------------------
 
     def get_playlist_videos(self, playlist_url: str) -> Dict:
-        """Extract list of videos from a YouTube playlist"""
+        """Get playlist videos from the official YouTube Data API."""
         try:
-            from app.services.video_processing import _resolve_valid_cookie_file
+            from app.services.youtube_data_api import get_playlist_videos
 
             cache_key = hashlib.md5(playlist_url.encode()).hexdigest()
             cache_file = self.cache_dir / f"playlist_{cache_key}.json"
@@ -994,123 +989,13 @@ class PauseToCodeService:
                     except Exception as e:
                         logger.warning(f"Cache read failed, fetching fresh: {e}")
 
-            logger.info(f"Extracting playlist info from: {playlist_url}")
-
-            ydl_opts = {
-                'extract_flat': 'in_playlist',
-                'skip_download': True,
-                'retries': 1,
-                'fragment_retries': 1,
-                'socket_timeout': 8,
-                'quiet': True,
-                'no_warnings': True,
-                'http_headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                },
-            }
-
-            cookie_file = _resolve_valid_cookie_file()
-            cookies_browser = os.getenv('YTDLP_COOKIES_FROM_BROWSER', '').strip()
-            use_cookies = bool(cookie_file or cookies_browser)
-
-            if cookie_file:
-                ydl_opts['cookiefile'] = cookie_file
-                logger.info("Using YTDLP_COOKIE_FILE for playlist extraction")
-            elif cookies_browser:
-                browser_profile = os.getenv('YTDLP_COOKIES_BROWSER_PROFILE', '').strip() or None
-                ydl_opts['cookiesfrombrowser'] = (cookies_browser, browser_profile, None, None)
-                logger.info(f"Using YTDLP_COOKIES_FROM_BROWSER for playlist extraction (browser={cookies_browser})")
-
-            info = None
-            try:
-                logger.info(f"Attempting playlist extraction...")
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(playlist_url, download=False)
-            except Exception as verbose_error:
-                error_str = str(verbose_error).lower()
-                logger.warning(f"Extraction failed on first attempt: {verbose_error}")
-
-                if use_cookies and ('cookies' in error_str or 'load' in error_str):
-                    logger.info("Cookie loading failed, retrying without cookies...")
-                    ydl_opts.pop('cookiefile', None)
-                    ydl_opts.pop('cookiesfrombrowser', None)
-
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        info = ydl.extract_info(playlist_url, download=False)
-                else:
-                    logger.info(f"Retrying with ignoreerrors enabled...")
-                    ydl_opts_quiet = {**ydl_opts, 'ignoreerrors': True}
-                    with yt_dlp.YoutubeDL(ydl_opts_quiet) as ydl:
-                        info = ydl.extract_info(playlist_url, download=False)
-
-                    if info is None:
-                        raise Exception(f"Extraction failed: {verbose_error}")
-
-            if info is None:
-                logger.error(f"Failed to extract playlist info: info is None after all attempts")
-                raise ValueError("YouTube URL could not be processed. Verify the URL is valid and publicly accessible.")
-
-            logger.info(f"Successfully extracted info, type: {info.get('_type', 'unknown')}")
-
-            if info.get('_type') != 'playlist':
-                video_title = info.get('title', 'Unknown')
-                video_id = info.get('id')
-
-                if not video_id:
-                    logger.warning(f"Single video extracted but has no ID: {video_title}")
-                    raise ValueError("Could not extract video ID from YouTube URL")
-
-                logger.info(f"Extracted single video: {video_id} - {video_title}")
-                return {
-                    'playlist_title': video_title,
-                    'videos': [{
-                        'video_id': video_id,
-                        'title': video_title,
-                        'thumbnail': info.get('thumbnail', ''),
-                        'duration': info.get('duration', 0),
-                        'url': f"https://www.youtube.com/watch?v={video_id}"
-                    }]
-                }
-
-            playlist_title = info.get('title', 'Unknown Playlist')
-            videos = []
-            entries = info.get('entries', [])
-
-            if not entries:
-                logger.warning(f"Playlist has no entries: {playlist_title}")
-                raise ValueError(f"Playlist '{playlist_title}' is empty or unavailable")
-
-            logger.info(f"Processing {len(entries)} entries from playlist...")
-            for idx, entry in enumerate(entries):
-                if entry:
-                    video_id = entry.get('id')
-                    if not video_id:
-                        logger.debug(f"Entry {idx} has no ID, skipping")
-                        continue
-
-                    videos.append({
-                        'video_id': video_id,
-                        'title': entry.get('title', f'Video {idx + 1}'),
-                        'thumbnail': entry.get('thumbnail', ''),
-                        'duration': entry.get('duration', 0),
-                        'url': f"https://www.youtube.com/watch?v={video_id}"
-                    })
-
-            if not videos:
-                logger.error(f"No valid videos extracted from {len(entries)} entries")
-                raise ValueError(f"No valid videos found in playlist '{playlist_title}'")
-
-            logger.info(f"Successfully extracted {len(videos)} videos from playlist: {playlist_title}")
-
-            result = {
-                'playlist_title': playlist_title,
-                'videos': videos
-            }
+            logger.info(f"Fetching playlist info from YouTube Data API: {playlist_url}")
+            result = get_playlist_videos(playlist_url)
 
             try:
                 with open(cache_file, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=2)
-                logger.info(f"Cached playlist info for future requests")
+                logger.info("Cached YouTube Data API playlist info for future requests")
             except Exception as e:
                 logger.warning(f"Failed to cache playlist info: {e}")
 

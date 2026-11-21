@@ -58,11 +58,18 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-# Set GEMINI_API_KEY, JWT_SECRET_KEY, and ADMIN_INITIAL_PASSWORD
+# Set GEMINI_API_KEY, JWT_SECRET_KEY, ADMIN_INITIAL_PASSWORD, and YOUTUBE_API_KEY
 
 # Run the server
 python run.py
 ```
+
+`YOUTUBE_API_KEY` is required for YouTube search and public video/playlist
+metadata. Set it in the backend `.env` locally and in the Render backend
+environment for deployment; do not commit the key. The Data API does not provide
+video downloads, so media downloads still use yt-dlp and may be blocked by YouTube.
+Transcript lookup tries `youtube-transcript-api` first, but that third-party
+library is not the official Data API and may also be rate-limited or blocked.
 
 `ADMIN_INITIAL_PASSWORD` is used only when creating the admin account in a new
 database and must be at least 12 characters. It does not change an existing
