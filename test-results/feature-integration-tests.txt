@@ -1,0 +1,37 @@
+CODIO FEATURE TESTS
+============================================================
+Authenticated successfully
+
+============================================================
+TEST 2: Transcript Search
+============================================================
+
+[2.1] Searching 'variable' in Gf9wLsCJDqc...
+  Found 0 matches
+
+  TRANSCRIPT TEST FAILED: Expected at least 1 match for 'variable'
+
+============================================================
+TEST 3: Quiz - Multiple Question Types & Progressive Difficulty
+============================================================
+
+[3.1] Starting quiz for video Gf9wLsCJDqc...
+
+  QUIZ TEST FAILED: Quiz start failed: {'error': 'Missing transcript. Provide transcript text or a video_id with an extracted transcript.', 'success': False}
+
+============================================================
+TEST 3b: Quiz - Difficulty Adaptation
+============================================================
+
+[3b.1] Starting quiz to test difficulty adaptation...
+  Q1: wrong answer -> Level: 1
+  Q2: wrong answer -> Level: 1
+  Q3: wrong answer -> Level: 1
+  Q4: wrong answer -> Level: 1
+
+  Level progression (all wrong): [1, 1, 1, 1, 1]
+  PASS - Difficulty decreased as expected
+
+============================================================
+SOME TESTS FAILED - check output above
+============================================================

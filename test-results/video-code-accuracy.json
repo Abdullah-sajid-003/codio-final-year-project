@@ -1,0 +1,77 @@
+{
+  "test_name": "Video Extracted Code Compiler Accuracy",
+  "test_date": "2026-11-23T21:29:58.977067+00:00",
+  "video_url": "https://www.youtube.com/watch?v=Gf9wLsCJDqc",
+  "video_id": "Gf9wLsCJDqc",
+  "timestamps_tested": [
+    30.0,
+    60.0,
+    90.0,
+    120.0,
+    180.0,
+    240.0
+  ],
+  "code_frames_detected": 1,
+  "compiler_pass_count": 1,
+  "compiler_fail_count": 0,
+  "frames_with_extracted_code_percent": 16.67,
+  "compiler_accuracy_status": "100.00% (1/1 code frames)",
+  "exact_text_accuracy_status": "NOT MEASURABLE - no expected-code dataset supplied",
+  "compiler_pass_rate_percent": 100.0,
+  "runtime_pass_rate_percent": 100.0,
+  "exact_text_accuracy_percent": null,
+  "average_extraction_confidence": 0.98,
+  "rows": [
+    {
+      "timestamp": 30.0,
+      "extraction": "no_code",
+      "confidence": 0.95,
+      "code_complete": false,
+      "compiler": "not_attempted"
+    },
+    {
+      "timestamp": 60.0,
+      "extraction": "code",
+      "confidence": 0.98,
+      "code_complete": false,
+      "language": "python",
+      "extracted_code": "x = str(3)  # x will be \"3\"\ny = int(3)  # y will be 3\nz = float(3) #",
+      "compiler": "passed",
+      "compiler_exit_code": 0,
+      "compiler_stdout": "",
+      "compiler_stderr": "",
+      "compiler_source": "local_python_fallback",
+      "exact_text_accuracy_percent": null
+    },
+    {
+      "timestamp": 90.0,
+      "extraction": "no_code",
+      "confidence": 0.9,
+      "code_complete": false,
+      "compiler": "not_attempted"
+    },
+    {
+      "timestamp": 120.0,
+      "extraction": "no_code",
+      "confidence": 0.95,
+      "code_complete": false,
+      "compiler": "not_attempted"
+    },
+    {
+      "timestamp": 180.0,
+      "extraction": "failed",
+      "error": "Could not extract frame at this timestamp",
+      "confidence": 0.0,
+      "code_complete": false,
+      "compiler": "not_attempted"
+    },
+    {
+      "timestamp": 240.0,
+      "extraction": "failed",
+      "error": "Could not extract frame at this timestamp",
+      "confidence": 0.0,
+      "code_complete": false,
+      "compiler": "not_attempted"
+    }
+  ]
+}

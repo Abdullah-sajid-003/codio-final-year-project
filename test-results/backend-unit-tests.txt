@@ -1,0 +1,55 @@
+python : [JWT] WARNING: Using default JWT secret key. Change this in production!
+At line:2 char:86
++ ... \codio-backend'; python -m unittest discover -s tests -v 2>&1 | Out-F ...
++                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([JWT] WARNING: ... in production!:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+C:\Users\abdul\Downloads\Codio-Final-Year-Project-main\codio-backend\app\services\code_execution.py:13: FutureWarning:
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+test_initial_admin_is_not_created_with_a_hardcoded_password
+(test_admin_password.AdminPasswordTests.test_initial_admin_is_not_created_with_a_hardcoded_password) ...
+C:\Users\abdul\Downloads\Codio-Final-Year-Project-main\codio-backend\app\models\database.py:1266: DeprecationWarning:
+datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to
+represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  now = datetime.utcnow()
+ok
+test_initial_admin_uses_configured_password
+(test_admin_password.AdminPasswordTests.test_initial_admin_uses_configured_password) ... [Database] Invalid password
+for admin@gmail.com
+ok
+test_legacy_sha256_password_is_upgraded_after_successful_login
+(test_admin_password.AdminPasswordTests.test_legacy_sha256_password_is_upgraded_after_successful_login) ... ok
+test_password_reset_updates_existing_account
+(test_admin_password.AdminPasswordTests.test_password_reset_updates_existing_account) ... [Database] Invalid password
+for admin@gmail.com
+ok
+test_duplicate_playlist_saves_are_idempotent_and_release_database_lock (test_database_playlist_races.PlaylistDatabaseRa
+ceTests.test_duplicate_playlist_saves_are_idempotent_and_release_database_lock) ... ok
+test_analysis_error_details_are_preserved
+(test_pause_to_code_errors.PauseToCodeErrorTests.test_analysis_error_details_are_preserved) ... ok
+test_frame_route_returns_failure_status_and_detail
+(test_pause_to_code_errors.PauseToCodeErrorTests.test_frame_route_returns_failure_status_and_detail) ...
+[frame_1795468769.527609] Frame analysis failed: gemini_api_key_missing - Gemini API key is not configured.
+ok
+test_api_key_is_required (test_youtube_data_api.YouTubeDataAPITests.test_api_key_is_required) ... ok
+test_duration_seconds_parses_youtube_iso_duration
+(test_youtube_data_api.YouTubeDataAPITests.test_duration_seconds_parses_youtube_iso_duration) ... ok
+test_extract_video_id_from_supported_urls
+(test_youtube_data_api.YouTubeDataAPITests.test_extract_video_id_from_supported_urls) ... ok
+test_playlist_response_uses_api_metadata_and_video_details
+(test_youtube_data_api.YouTubeDataAPITests.test_playlist_response_uses_api_metadata_and_video_details) ... ok
+test_search_response_matches_frontend_video_shape
+(test_youtube_data_api.YouTubeDataAPITests.test_search_response_matches_frontend_video_shape) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 4.789s
+
+OK

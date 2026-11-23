@@ -1,0 +1,13 @@
+CODIO EXACT CODE EXTRACTION ACCURACY TEST
+========================================================================
+Test date: 2026-11-23T21:39:23.770445+00:00
+Ground truth: known code rendered onto controlled IDE frames
+Ground-truth samples: 3
+Exact match accuracy: 100.00% (3/3)
+Average text similarity: 100.00%
+Compiler accuracy: 100.00% (3/3)
+Expected-output accuracy: 100.00% (3/3)
+
+variables | exact=100.00% | similarity=100.00% | compiler=PASS | output=PASS
+for_loop | exact=100.00% | similarity=100.00% | compiler=PASS | output=PASS
+function | exact=100.00% | similarity=100.00% | compiler=PASS | output=PASS

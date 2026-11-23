@@ -1,0 +1,33 @@
+
+> my-v0-project@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.7
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 4.6s
+   Skipping validation of types
+   Linting ...
+   Collecting page data ...
+   Generating static pages (0/6) ...
+   Generating static pages (1/6)
+   Generating static pages (2/6)
+   Generating static pages (4/6)
+ ✓ Generating static pages (6/6)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                     183 kB         294 kB
+├ ○ /_not-found                            997 B         103 kB
+├ ƒ /api/youtube/playlist                  128 B         102 kB
+└ ƒ /api/youtube/search                    128 B         102 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/255-ac576b8c1dfdf619.js       45.5 kB
+  ├ chunks/4bd1b696-409494caf8c83275.js  54.2 kB
+  └ other shared chunks (total)          2.06 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

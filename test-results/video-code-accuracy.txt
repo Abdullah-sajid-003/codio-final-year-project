@@ -1,0 +1,20 @@
+CODIO VIDEO CODE EXTRACTION ACCURACY TEST
+========================================================================
+Test date: 2026-11-23T21:29:58.977067+00:00
+Video: https://www.youtube.com/watch?v=Gf9wLsCJDqc
+Video ID: Gf9wLsCJDqc
+Code frames detected: 1
+Compiler pass count: 1
+Compiler fail count: 0
+Extraction accuracy: 96% (5/6 timestamps)
+Compiler accuracy: 100.00% (1/1 code frames)
+Exact text accuracy: NOT MEASURABLE - no expected-code dataset supplied
+Runtime pass rate: 100.00% (if code frames were executable)
+Average extraction confidence: 0.98
+
+Timestamp 30s | extraction=no_code | compiler=not_attempted | confidence=0.95
+Timestamp 60s | extraction=code | compiler=passed | confidence=0.98
+Timestamp 90s | extraction=no_code | compiler=not_attempted | confidence=0.90
+Timestamp 120s | extraction=no_code | compiler=not_attempted | confidence=0.95
+Timestamp 180s | extraction=failed | compiler=not_attempted | confidence=0.00
+Timestamp 240s | extraction=failed | compiler=not_attempted | confidence=0.00

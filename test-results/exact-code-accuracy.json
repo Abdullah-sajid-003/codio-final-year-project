@@ -1,0 +1,57 @@
+{
+  "test_name": "Controlled Exact Code Extraction Accuracy",
+  "test_date": "2026-11-23T21:39:23.770445+00:00",
+  "test_type": "Known code rendered on synthetic IDE frames",
+  "ground_truth_samples": 3,
+  "exact_match_count": 3,
+  "exact_match_accuracy_percent": 100.0,
+  "average_text_similarity_percent": 100.0,
+  "compiler_pass_count": 3,
+  "compiler_accuracy_percent": 100.0,
+  "output_match_count": 3,
+  "output_accuracy_percent": 100.0,
+  "rows": [
+    {
+      "name": "variables",
+      "ground_truth_code": "x = str(3)\ny = int(3)\nz = float(3)\nprint(x, y, z)",
+      "extracted_code": "x = str(3)\ny = int(3)\nz = float(3)\nprint(x, y, z)",
+      "exact_match_percent": 100.0,
+      "similarity_percent": 100.0,
+      "compiler_passed": true,
+      "compiler_exit_code": 0,
+      "expected_output": "3 3 3.0",
+      "actual_output": "3 3 3.0",
+      "output_match": true,
+      "extraction_confidence": 0.99,
+      "extraction_error": null
+    },
+    {
+      "name": "for_loop",
+      "ground_truth_code": "total = 0\nfor number in range(1, 5):\n    total += number\nprint(total)",
+      "extracted_code": "total = 0\nfor number in range(1, 5):\n    total += number\nprint(total)",
+      "exact_match_percent": 100.0,
+      "similarity_percent": 100.0,
+      "compiler_passed": true,
+      "compiler_exit_code": 0,
+      "expected_output": "10",
+      "actual_output": "10",
+      "output_match": true,
+      "extraction_confidence": 0.99,
+      "extraction_error": null
+    },
+    {
+      "name": "function",
+      "ground_truth_code": "def add(a, b):\n    return a + b\n\nprint(add(4, 7))",
+      "extracted_code": "def add(a, b):\n    return a + b\n\nprint(add(4, 7))",
+      "exact_match_percent": 100.0,
+      "similarity_percent": 100.0,
+      "compiler_passed": true,
+      "compiler_exit_code": 0,
+      "expected_output": "11",
+      "actual_output": "11",
+      "output_match": true,
+      "extraction_confidence": 0.98,
+      "extraction_error": null
+    }
+  ]
+}
